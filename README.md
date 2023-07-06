@@ -12,8 +12,32 @@ It can notify team members about significant changes such as new releases, close
 2. **Email Notifications:** Get instant email notifications whenever there's a significant update in any of the repositories being tracked.
 3. **Filter Notifications:** Configure the tool to send notifications based on specific events like new releases, closed issues, etc.
 4. **Flexible and Configurable:** You can add or remove repositories from the tracking list at any time.
-5. **Slack Integration:** (optional) Integrate with Slack to receive notifications on a specified Slack channel.
+5. **Slack Integration:** Integrate with Slack to receive notifications on a specified Slack channel.
 
 ## Getting Started
+
+### Installation
+
+1. Clone the repository
+
+   ```sh
+   git clone
+    ```
+2. Install dependencies
+
+   ```sh
+   go mod download
+   ```
+3. Build the binary
+
+   ```sh
+    go build
+    ```
+4. Run the binary
+
+   ```sh
+    ./Repo_Tracker
+    ```
+
 
 
