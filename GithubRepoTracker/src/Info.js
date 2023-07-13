@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, TextInput, Button } from 'react-native';
+import { Modal, TouchableOpacity } from 'react-native';
+
 
 const Info = ({ username }) => {
     const [userData, setUserData] = useState({});
-    const [email, setEmail] = useState(''); 
+    const [email, setEmail] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
+
 
     const handleEmailSubmit = () => {
         fetch('http://localhost:8080/email', {
@@ -15,13 +19,17 @@ const Info = ({ username }) => {
                 recipient: email,
             }),
         })
-        .then(response => {
-            if (!response.ok) {
-                console.log(`Email to be sent to: ${email}`);
-                throw new Error('HTTP error ' + response.status);
-            }
-        })
-        .catch(error => console.error(error));
+            .then(response => {
+                if (!response.ok) {
+                    console.log(`Email to be sent to: ${email}`);
+
+                    throw new Error('HTTP error ' + response.status);
+                }
+            })
+            .catch(error => console.error(error));
+        // Empty the email field
+        setEmail('');
+        setModalVisible(true);
     }
 
     useEffect(() => {
@@ -58,6 +66,33 @@ const Info = ({ username }) => {
                             placeholder="  Recipient's Email"
                         />
                         <Button title="Send Email" onPress={handleEmailSubmit} />
+                        <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={modalVisible}
+                            onRequestClose={() => {
+                                setModalVisible(!modalVisible);
+                            }}
+                        >
+                            <View style={styles.centeredView}>
+                                <View style={styles.modalView}>
+                                    <View style={styles.modalHeader}>
+                                        <TouchableOpacity
+                                            style={{ ...styles.openButton, backgroundColor: '#2196F3' }}
+                                            onPress={() => {
+                                                setModalVisible(!modalVisible);
+                                            }}
+                                        >
+                                            <Text style={styles.textStyle}>X</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <View style={styles.modalBody}>
+                                        <Text style={styles.modalText}>Email Sent!👍</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        </Modal>
+
                     </View>
                 </>
             ) : (
@@ -96,6 +131,53 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 16,
         width: '80%', // take full width of the container
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 12,
+    },
+    modalView: {
+        margin: 20,
+        height: 150,
+        width: 200,
+        backgroundColor: 'lightgreen',
+        borderRadius: 20,
+        padding: 15,
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        alignItems: 'stretch',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5
+    },
+    openButton: {
+        backgroundColor: '#F194FF',
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2
+    },
+    modalHeader: {
+        alignSelf: 'flex-end',
+    },
+    textStyle: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'right'
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
+        fontSize: 18,
+    },
+    modalBody: {
+        marginTop: 10,
     },
 });
 
