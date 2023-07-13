@@ -7,21 +7,21 @@ import (
 )
 
 func isValidUsername(username string) bool {
-	// Username is between 1 and 39 characters
+
 	if len(username) < 1 || len(username) > 39 {
 		return false
 	}
-	// Username may only contain alphanumeric characters or hyphens
+
 	for _, ch := range username {
 		if !(ch == '-' || unicode.IsLetter(ch) || unicode.IsNumber(ch)) {
 			return false
 		}
 	}
-	// Username cannot have multiple consecutive hyphens
+
 	if strings.Contains(username, "--") {
 		return false
 	}
-	// Username cannot begin or end with a hyphen
+
 	if strings.HasPrefix(username, "-") || strings.HasSuffix(username, "-") {
 		return false
 	}

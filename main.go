@@ -125,9 +125,9 @@ func main() {
 		}
 
 		done := make(chan bool)
-		go scrapeGithub(user, done) // start the goroutine
+		go scrapeGithub(user, done)
 
-		<-done // wait for the goroutine to finish
+		<-done 
 
 		repositories, _ := cache.Get(user)
 
@@ -149,9 +149,9 @@ func main() {
 		}
 
 		done := make(chan bool)
-		go scrapeGithubUser(user, done) // start the goroutine
+		go scrapeGithubUser(user, done)
 
-		<-done // wait for the goroutine to finish
+		<-done
 
 		githubUser, _ := cache.Get(user)
 
