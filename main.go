@@ -44,7 +44,7 @@ func scrapeGithub(user string, done chan<- bool) []Repository {
 		return repositories
 	}
 
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", "Bearer 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")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("Failed to retrieve user repositories: ", err)
@@ -89,7 +89,7 @@ func scrapeGithubUser(user string, done chan <- bool) GithubUser {
 		return githubUser
 	}
 
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", "Bearer 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")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("Failed to retrieve user: ", err)
@@ -116,6 +116,7 @@ func scrapeGithubUser(user string, done chan <- bool) GithubUser {
 }
 
 func main() {
+	http.HandleFunc("/email", handleEmailRequest)
 	http.HandleFunc("/repos", func(w http.ResponseWriter, r *http.Request) {
 		user := r.URL.Query().Get("username")
 		if user == "" {
