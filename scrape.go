@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"sync"
 )
 
 type Repository struct {
@@ -26,11 +27,12 @@ type GithubUser struct {
 }
 
 var cache = NewCache()
+var wg sync.WaitGroup
 
-func scrapeGithub(user string) []Repository {
+func scrapeGithub(user string, done chan<- bool) []Repository {
 
-	if item, found := cache.Get(user); found {
-		return item.([]Repository)
+	if _, found := cache.Get(user); found {
+		done <- true
 	}
 
 	var repositories []Repository
@@ -42,7 +44,7 @@ func scrapeGithub(user string) []Repository {
 		return repositories
 	}
 
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", "Bearer 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")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("Failed to retrieve user repositories: ", err)
@@ -65,16 +67,17 @@ func scrapeGithub(user string) []Repository {
 	}
 
 	cache.Set(user, repos, 24*time.Hour)
+	done <- true
 
 	return repos
 }
 
 
 
-func scrapeGithubUser(user string) GithubUser {
+func scrapeGithubUser(user string, done chan <- bool) GithubUser {
 
-	if item, found := cache.Get(user); found {
-		return item.(GithubUser)
+	if _, found := cache.Get(user); found {
+		done <- true
 	}
 
 	var githubUser GithubUser
@@ -86,7 +89,7 @@ func scrapeGithubUser(user string) GithubUser {
 		return githubUser
 	}
 
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", "Bearer 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")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("Failed to retrieve user: ", err)
@@ -107,6 +110,7 @@ func scrapeGithubUser(user string) GithubUser {
 	}
 
 	cache.Set(user, githubUser, 24*time.Hour)
+	done <- true
 
 	return githubUser
 }
@@ -119,7 +123,12 @@ func main() {
 			return
 		}
 
-		repositories := scrapeGithub(user)
+		done := make(chan bool)
+		go scrapeGithub(user, done) // start the goroutine
+
+		<-done // wait for the goroutine to finish
+
+		repositories, _ := cache.Get(user)
 
 		js, err := json.Marshal(repositories)
 		if err != nil {
@@ -137,15 +146,20 @@ func main() {
 			http.Error(w, "Username parameter is required", http.StatusBadRequest)
 			return
 		}
-	
-		githubUser := scrapeGithubUser(user)
-	
+
+		done := make(chan bool)
+		go scrapeGithubUser(user, done) // start the goroutine
+
+		<-done // wait for the goroutine to finish
+
+		githubUser, _ := cache.Get(user)
+
 		js, err := json.Marshal(githubUser)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	
+
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(js)
 	})
