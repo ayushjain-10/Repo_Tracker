@@ -1,45 +1,39 @@
-import React, { useState } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, FlatList, View, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { FlatList, View, StyleSheet, Text } from 'react-native';
 
-const RepoList = () => {
+const RepoList = ({ username }) => {
     const [repos, setRepos] = useState([]);
-    const [username, setUsername] = useState('');
 
-    const handlePress = () => {
-        fetch(`http://localhost:8080/repos?username=${username}`)
-            .then(response => response.json())
-            .then(data => setRepos(data))
-            .catch(error => console.error(error));
-    };
+    useEffect(() => {
+        if (username !== '') {
+            fetch(`http://localhost:8080/repos?username=${username}`)
+                .then(response => response.json())
+                .then(data => setRepos(data))
+                .catch(error => console.error(error));
+        }
+    }, [username]);
 
     return (
-        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : null}>
-            <TextInput
-                style={styles.input}
-                onChangeText={setUsername}
-                value={username}
-                placeholder="Enter Github username"
-                autoCapitalize='none'
-            />
-            <TouchableOpacity style={styles.button} onPress={handlePress}>
-                <Text style={styles.buttonText}>Get Repos</Text>
-            </TouchableOpacity>
-            <FlatList
-                data={repos}
-                renderItem={({ item }) => (
-                    <View style={styles.repoContainer}>
-                        <Text style={styles.repoLink}>{item.html_url}</Text>
-                        <Text>Stars: {item.stargazers_count}</Text>
-                        <Text>Forks: {item.forks_count}</Text>
-                        <Text>Issues: {item.open_issues_count}</Text>
-                    </View>
-                )}
-                keyExtractor={(item, index) => index.toString()}
-                style={styles.flatList} // apply style to limit the height
-            />
-        </KeyboardAvoidingView>
+        // add text "Hi"
+        
+        <FlatList
+            data={repos}
+            renderItem={({ item }) => (
+                <View style={styles.repoContainer}>
+                    <Text style={styles.repoLink}>Name: {item.name}</Text>
+                    <Text>{item.html_url}</Text>
+                    <Text>Stars: {item.stargazers_count}</Text>
+                    <Text>Forks: {item.forks_count}</Text>
+                    <Text>Issues: {item.open_issues_count}</Text>
+                </View>
+            )}
+            keyExtractor={(item, index) => index.toString()}
+            style={styles.flatList} // apply style to limit the height
+        />
     );
 }
+
+
 
 const styles = StyleSheet.create({
     container: {

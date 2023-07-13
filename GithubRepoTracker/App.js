@@ -1,11 +1,8 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native';
-import RepoList from './src/RepoList'
+
+import AppNavigator from './navigation/AppNavigator';
 
 export default function App() {
-  return (
-    <SafeAreaView>
-      <RepoList />
-    </SafeAreaView>
-  );
+  return <AppNavigator />;
 }
