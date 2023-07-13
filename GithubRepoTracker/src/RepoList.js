@@ -28,10 +28,10 @@ const RepoList = () => {
                 data={repos}
                 renderItem={({ item }) => (
                     <View style={styles.repoContainer}>
-                        <Text style={styles.repoLink}>{item.link}</Text>
-                        <Text>Stars: {item.stars}</Text>
-                        <Text>Forks: {item.forks}</Text>
-                        <Text>Issues: {item.issues}</Text>
+                        <Text style={styles.repoLink}>{item.html_url}</Text>
+                        <Text>Stars: {item.stargazers_count}</Text>
+                        <Text>Forks: {item.forks_count}</Text>
+                        <Text>Issues: {item.open_issues_count}</Text>
                     </View>
                 )}
                 keyExtractor={(item, index) => index.toString()}

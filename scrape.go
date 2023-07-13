@@ -9,40 +9,10 @@ import (
 )
 
 type Repository struct {
-	Link   string `json:"link"`
-	Stars  int    `json:"stars"`
-	Forks  int    `json:"forks"`
-	Issues int    `json:"issues"`
-}
-
-type GithubRepoResponse struct {
-	StargazersCount int `json:"stargazers_count"`
-	ForksCount      int `json:"forks_count"`
-	OpenIssuesCount int `json:"open_issues_count"`
-}
-
-func fetchRepoDetails(repoURL string) (GithubRepoResponse, error) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", repoURL, nil)
-	if err != nil {
-		return GithubRepoResponse{}, err
-	}
-
-	req.Header.Set("Authorization", "Bearer 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")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return GithubRepoResponse{}, err
-	}
-	defer resp.Body.Close()
-
-	var repoResponse GithubRepoResponse
-	err = json.NewDecoder(resp.Body).Decode(&repoResponse)
-	if err != nil {
-		return GithubRepoResponse{}, err
-	}
-
-	return repoResponse, nil
+	Link   string `json:"html_url"`
+	Stars  int    `json:"stargazers_count"`
+	Forks  int    `json:"forks_count"`
+	Issues int    `json:"open_issues_count"`
 }
 
 func scrapeGithub(user string) []Repository {
@@ -55,7 +25,7 @@ func scrapeGithub(user string) []Repository {
 		return repositories
 	}
 
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", "Bearer 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")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("Failed to retrieve user repositories: ", err)
@@ -69,30 +39,14 @@ func scrapeGithub(user string) []Repository {
 		return repositories
 	}
 
-	var repos []map[string]interface{}
+	var repos []Repository
 	err = json.Unmarshal(body, &repos)
 	if err != nil {
 		log.Fatal("Failed to unmarshal response body: ", err)
 		return repositories
 	}
 
-	for _, repo := range repos {
-		repoLink := repo["html_url"].(string)
-		repoDetails, err := fetchRepoDetails(repo["url"].(string))
-		if err != nil {
-			log.Printf("Failed to fetch details for repository %s: %v", repoLink, err)
-			continue
-		}
-
-		repositories = append(repositories, Repository{
-			Link:   repoLink,
-			Stars:  repoDetails.StargazersCount,
-			Forks:  repoDetails.ForksCount,
-			Issues: repoDetails.OpenIssuesCount,
-		})
-	}
-
-	return repositories
+	return repos
 }
 
 func main() {
