@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type Repository struct {
@@ -24,7 +25,14 @@ type GithubUser struct {
 	FollowingCount   int    `json:"following"`
 }
 
+var cache = NewCache()
+
 func scrapeGithub(user string) []Repository {
+
+	if item, found := cache.Get(user); found {
+		return item.([]Repository)
+	}
+
 	var repositories []Repository
 
 	apiURL := fmt.Sprintf("https://api.github.com/users/%s/repos", user)
@@ -34,7 +42,7 @@ func scrapeGithub(user string) []Repository {
 		return repositories
 	}
 
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", "Bearer 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")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("Failed to retrieve user repositories: ", err)
@@ -56,12 +64,19 @@ func scrapeGithub(user string) []Repository {
 		return repositories
 	}
 
+	cache.Set(user, repos, 24*time.Hour)
+
 	return repos
 }
 
 
 
 func scrapeGithubUser(user string) GithubUser {
+
+	if item, found := cache.Get(user); found {
+		return item.(GithubUser)
+	}
+
 	var githubUser GithubUser
 
 	apiURL := fmt.Sprintf("https://api.github.com/users/%s", user)
@@ -71,7 +86,7 @@ func scrapeGithubUser(user string) GithubUser {
 		return githubUser
 	}
 
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", "Bearer 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")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("Failed to retrieve user: ", err)
@@ -90,6 +105,8 @@ func scrapeGithubUser(user string) GithubUser {
 		log.Fatal("Failed to unmarshal response body: ", err)
 		return githubUser
 	}
+
+	cache.Set(user, githubUser, 24*time.Hour)
 
 	return githubUser
 }

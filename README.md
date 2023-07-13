@@ -28,6 +28,7 @@ It can notify team members about significant changes such as new releases, close
    ```sh
    go mod download
    ```
+
 3. Build the binary
 
    ```sh
@@ -36,12 +37,17 @@ It can notify team members about significant changes such as new releases, close
 4. Run the binary
 
    ```sh
-    ./Repo_Tracker
+    go run *.go
     ```
-    or
+5. To Run Frontend:
+    Open a new terminal and run:
     ```sh
-    go run scrape.go
+    npm install
     ```
+    and
+      ```sh
+      npm run ios
+      ```
 
 
 
