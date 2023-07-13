@@ -3,35 +3,93 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-
-	"github.com/gocolly/colly"
 )
 
 type Repository struct {
-	Link string `json:"link"`
+	Link   string `json:"link"`
+	Stars  int    `json:"stars"`
+	Forks  int    `json:"forks"`
+	Issues int    `json:"issues"`
+}
+
+type GithubRepoResponse struct {
+	StargazersCount int `json:"stargazers_count"`
+	ForksCount      int `json:"forks_count"`
+	OpenIssuesCount int `json:"open_issues_count"`
+}
+
+func fetchRepoDetails(repoURL string) (GithubRepoResponse, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", repoURL, nil)
+	if err != nil {
+		return GithubRepoResponse{}, err
+	}
+
+	req.Header.Set("Authorization", "Bearer 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")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return GithubRepoResponse{}, err
+	}
+	defer resp.Body.Close()
+
+	var repoResponse GithubRepoResponse
+	err = json.NewDecoder(resp.Body).Decode(&repoResponse)
+	if err != nil {
+		return GithubRepoResponse{}, err
+	}
+
+	return repoResponse, nil
 }
 
 func scrapeGithub(user string) []Repository {
 	var repositories []Repository
 
-	c := colly.NewCollector(
-		colly.AllowedDomains("github.com", "www.github.com"),
-	)
-
-	c.OnHTML("div[id='user-repositories-list'] div h3 a", func(e *colly.HTMLElement) {
-		repoLink := "https://github.com" + e.Attr("href")
-		repositories = append(repositories, Repository{Link: repoLink})
-	})
-
-	c.OnScraped(func(r *colly.Response) {
-		fmt.Println("Finished scraping the page", r.Request.URL)
-	})
-
-	err := c.Visit("https://github.com/" + user + "?tab=repositories")
+	apiURL := fmt.Sprintf("https://api.github.com/users/%s/repos", user)
+	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
-		log.Fatal("Failed to visit: ", err)
+		log.Fatal("Failed to create API request: ", err)
+		return repositories
+	}
+
+	req.Header.Set("Authorization", "Bearer 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")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Fatal("Failed to retrieve user repositories: ", err)
+		return repositories
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("Failed to read response body: ", err)
+		return repositories
+	}
+
+	var repos []map[string]interface{}
+	err = json.Unmarshal(body, &repos)
+	if err != nil {
+		log.Fatal("Failed to unmarshal response body: ", err)
+		return repositories
+	}
+
+	for _, repo := range repos {
+		repoLink := repo["html_url"].(string)
+		repoDetails, err := fetchRepoDetails(repo["url"].(string))
+		if err != nil {
+			log.Printf("Failed to fetch details for repository %s: %v", repoLink, err)
+			continue
+		}
+
+		repositories = append(repositories, Repository{
+			Link:   repoLink,
+			Stars:  repoDetails.StargazersCount,
+			Forks:  repoDetails.ForksCount,
+			Issues: repoDetails.OpenIssuesCount,
+		})
 	}
 
 	return repositories
