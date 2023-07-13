@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"net/http"
 
 	"github.com/gocolly/colly"
 )
@@ -13,7 +13,7 @@ type Repository struct {
 	Link string `json:"link"`
 }
 
-func main() {
+func scrapeGithub(user string) []Repository {
 	var repositories []Repository
 
 	c := colly.NewCollector(
@@ -27,17 +27,35 @@ func main() {
 
 	c.OnScraped(func(r *colly.Response) {
 		fmt.Println("Finished scraping the page", r.Request.URL)
-
-		file, _ := json.MarshalIndent(repositories, "", " ")
-
-		_ = ioutil.WriteFile("repositories.json", file, 0644)
-		fmt.Println("Saved results to repositories.json")
 	})
 
-
-	user := "ayushjain-10"
 	err := c.Visit("https://github.com/" + user + "?tab=repositories")
 	if err != nil {
 		log.Fatal("Failed to visit: ", err)
 	}
+
+	return repositories
+}
+
+func main() {
+	http.HandleFunc("/repos", func(w http.ResponseWriter, r *http.Request) {
+		user := r.URL.Query().Get("username")
+		if user == "" {
+			http.Error(w, "Username parameter is required", http.StatusBadRequest)
+			return
+		}
+
+		repositories := scrapeGithub(user)
+
+		js, err := json.Marshal(repositories)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(js)
+	})
+
+	http.ListenAndServe(":8080", nil)
 }

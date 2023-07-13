@@ -38,6 +38,11 @@ It can notify team members about significant changes such as new releases, close
    ```sh
     ./Repo_Tracker
     ```
+    or
+    ```sh
+    go run scrape.go
+    ```
+
 
 
 
