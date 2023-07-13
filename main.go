@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 	"sync"
+	"os"
 )
 
 type Repository struct {
@@ -44,7 +45,7 @@ func scrapeGithub(user string, done chan<- bool) []Repository {
 		return repositories
 	}
 
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", os.Getenv("PRIVATE_API_KEY"))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("Failed to retrieve user repositories: ", err)
@@ -89,7 +90,7 @@ func scrapeGithubUser(user string, done chan <- bool) GithubUser {
 		return githubUser
 	}
 
-	req.Header.Set("Authorization", "Bearer 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")
+	req.Header.Set("Authorization", os.Getenv("PRIVATE_API_KEY"))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("Failed to retrieve user: ", err)
