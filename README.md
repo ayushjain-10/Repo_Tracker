@@ -1,4 +1,4 @@
-# Repo_Tracker
+# Repo_Tracker [![Go Report Card](https://goreportcard.com/badge/github.com/ayushjain-10/repo_tracker-main)](https://goreportcard.com/report/github.com/ayushjain-10/repo_tracker-main)
 
 ## Description
 
